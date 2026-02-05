@@ -1,8 +1,8 @@
 ---
 title: "Self-reported life satisfaction, 2011 to 2023"
 subtitle: "Replicating the Our World in Data Grapher"
-author: "YOUR NAME HERE" # Remember to add your name!
-theme: united
+author: "MWEBEMBEZI JOHN FISHER" # Remember to add your name!
+theme: morphy
 ---
 
 <!-- Custom HTML and style to add logo and custom font [DO NOT EDIT THIS SECTION] -->
@@ -44,10 +44,10 @@ The main life evaluation question asked in the poll is the Cantril Life Ladder q
 
 > “Please imagine a ladder, with steps numbered from 0 at the bottom to 10 at the top. The top of the ladder represents the best possible life for you and the bottom of the ladder represents the worst possible life for you. On which step of the ladder would you say you personally feel you stand at this time?”
 
-
+::: {.panel-tabset}
 ## 🔢 Table
 
-**Average self-reported life satisfaction** – Cantril Ladder score (0=worst; 10=best)
+**Average self-reported life satisfaction** – Cantril Ladder score (0=worst; 10=best
 
 ```{r}
 # In this tab, you will create a table similar to the one on the Our World in Data page.
@@ -56,14 +56,23 @@ The main life evaluation question asked in the poll is the Cantril Life Ladder q
 
 # You should:
 # 1. Use `select` to drop the Code column from the `cantril` data as it is not needed in the table.
-# 2. Filter the `cantril` data frame to just the years 2011 and 2023.
+# 2. Filter the `cantril` data frame to adjust the years 2011 and 2023.
 # 3. Use the `pivot_wider` function to create the columns for 2011 and 2023.
 # (You may need backticks around column names with spaces or which start with numbers.)
 # 4. Use the `mutate` function to calculate the Absolute change and Relative change.
 # 5. Also with `mutate`, you should round your numbers to appropriate decimal places.
 # 6. Then use scales::percent to format the Relative change as a percentage.
 # 7. Use the `reactable` function to create and output the table.
-"WRITE_YOUR_CODE_HERE"
+Cantril_data <- cantril %>% 
+  select(-Code) %>% 
+  filter (Year %in% c(2011,2023)) %>% 
+  pivot_wider(names_from = Year,
+              values_from = `Cantril ladder score`)%>%
+  mutate(Absolute_change = round(`2023` - `2011`,2)) %>% 
+  mutate(Relative_change = round((Absolute_change/`2011`),3)) %>% 
+  mutate(Relative_change = percent(Relative_change, accuracy = 0.1))
+
+  reactable(Cantril_data)
 ```
 
 
@@ -109,7 +118,15 @@ cantril %>%
 # 6. Use theme_minimal to set the theme.
 # 7. Finally, use ggplotly to convert the ggplot chart to a plotly chart
 
-"WRITE_YOUR_CODE_HERE"
+Cantril_plot <- cantril %>% 
+  filter(Country %in% c("South Africa","Nigeria","Algeria","Asia"))%>% 
+  ggplot(aes(x = Year , y = `Cantril ladder score`, colour = Country, fill = Country)) +
+  geom_line()+ 
+  scale_y_continuous(limits = c(0,10) ) +
+  labs(x = "Year" , y = "Cantril Ladder Score", colour = "Country")+
+  theme_minimal()
+
+ggplotly(Cantril_plot)
 # (When you're done with this section, don't forget to add tabsets, as mentioned in the instructions.)
 ```
 
@@ -166,17 +183,30 @@ function filter_default() {
 window.onload = filter_default;
 </script>
 
-
+## Optional
 ```{r}
 # OPTIONAL CHALLENGE SECTION:
 
 # Add a final tab with a single figure that shows the top 10 and bottom 10 countries by happiness score in 2023. Remember to add a ## header and include it in the tabsets
-# "WRITE_YOUR_CODE_HERE"
-```
 
+desc <- cantril %>% filter(Year == 2023) %>% 
+  select(Country,`Cantril ladder score`) %>% 
+  arrange(desc(`Cantril ladder score`)) %>% 
+   head(n = 10)
+
+asc <- cantril %>% filter(Year == 2023) %>% 
+  select(Country,`Cantril ladder score`) %>% 
+  arrange((`Cantril ladder score`)) %>% 
+   head(n = 10)
+
+  bind_rows(asc, desc) %>% 
+  reactable()
+```
+:::
 
 # {.unlisted}
 
 Data source: World Happiness Report
 
 [OurWorldInData.org/happiness-and-life-satisfaction](https://ourworldindata.org/grapher/happiness-cantril-ladder) | CC BY
+
